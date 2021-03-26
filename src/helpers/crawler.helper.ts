@@ -22,6 +22,16 @@ export default async function getTwitterImageUrls(url: string): Promise<string[]
     return [];
   }
 
+  try {
+    const showNSFW_selector = "body div[data-focusable='true'] > div[dir='auto'] > span > span";
+    await page.waitForSelector(showNSFW_selector, { visible: true, timeout: 10000 });
+    await page.click(showNSFW_selector);
+  } catch (err) { } // it's okay to be not found
+
+  if (debug) {
+    console.log('NSFW passed');
+  }
+
   const statusId = url.replace(/^.*\//, '');
   // const xpath = `//body//a[contains(@href, '${statusId}')]/ancestor::div[position()=1]//img`;
   const css_selector = `a[href*="/${statusId}/"] img[src]`;
