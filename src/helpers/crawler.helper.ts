@@ -1,11 +1,5 @@
 import puppeteer from 'puppeteer';
 
-process.on('uncaughtException', function (exception) {
-  console.log(exception); // to see your exception details in the console
-  // if you are on production, maybe you can send the exception details to your
-  // email as well ?
-});
-
 function wait(ms: number) {
   return new Promise<void>(resolve => setTimeout(() => resolve(), ms));
 }
@@ -28,17 +22,9 @@ export default async function getTwitterImageUrls(url: string): Promise<string[]
     return [];
   }
 
-  try {
-    const showNSFW_selector = "body div[data-focusable='true'] > div[dir='auto'] > span > span";
-    page.waitForSelector(showNSFW_selector, { visible: true, timeout: 10000 });
-    page.click(showNSFW_selector);
-  } catch (err) {
-    ;  // it's okay
-  }
-
   const statusId = url.replace(/^.*\//, '');
   // const xpath = `//body//a[contains(@href, '${statusId}')]/ancestor::div[position()=1]//img`;
-  const css_selector = `video[src], a[href*="${statusId}"] img[src]`;
+  const css_selector = `a[href*="/${statusId}/"] img[src]`;
   page.waitForSelector(css_selector, { visible: true, timeout: 30000 });
 
   let retry = 10;
@@ -55,11 +41,11 @@ export default async function getTwitterImageUrls(url: string): Promise<string[]
     }
 
     for (const src of media_srcs) {
-      if (src?.includes('pbs.twimg.com/media') ||
-        src?.includes('video.twimg.com/tweet_video')) {
+      if (src?.includes('pbs.twimg.com/media')) {
         valid_urls.push(src.replace(/&name=.+$/, '&name=large'));
       }
     }
+
     if (debug) {
       console.log(`retry: ${10 - retry}`, valid_urls);
     }
@@ -90,6 +76,6 @@ if (process.env.NODE_ENV !== 'production') {
   })();
 
   const img_url = 'https://twitter.com/Machiccalition/status/1374828782620565504';
-  // getTwitterImageUrls(img_url);
+  getTwitterImageUrls(img_url);
 
 }
